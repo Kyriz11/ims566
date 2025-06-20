@@ -1,100 +1,9 @@
-<?php
-// config.php - Database Configuration
-class Database {
-    private $host = 'localhost';
-    private $db_name = 'student_management';
-    private $username = 'root';
-    private $password = '';
-    public $conn;
-
-    public function getConnection() {
-        $this->conn = null;
-        try {
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
-            $this->conn->exec("set names utf8");
-        } catch(PDOException $exception) {
-            echo "Connection error: " . $exception->getMessage();
-        }
-        return $this->conn;
-    }
-}
-
-// session_handler.php
-session_start();
-
-function isLoggedIn() {
-    return isset($_SESSION['user_id']);
-}
-
-function requireLogin() {
-    if (!isLoggedIn()) {
-        header('Location: login.php');
-        exit;
-    }
-}
-
-// Database Setup SQL
-/*
-CREATE DATABASE student_management;
-USE student_management;
-
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE students (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    program VARCHAR(100),
-    year VARCHAR(20),
-    gpa DECIMAL(3,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE courses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    course_code VARCHAR(10) UNIQUE NOT NULL,
-    course_name VARCHAR(100) NOT NULL,
-    credits INT NOT NULL,
-    instructor VARCHAR(100),
-    enrolled_students INT DEFAULT 0,
-    status ENUM('Active', 'Inactive', 'Pending') DEFAULT 'Active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Insert sample data
-INSERT INTO users (username, password, email) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@uitm.edu.my');
-
-INSERT INTO students (student_id, name, email, phone, program, year, gpa) VALUES
-('2023001', 'Ahmad bin Abdullah', 'ahmad.abdullah@uitm.edu.my', '+60123456789', 'Computer Science', '3rd Year', 3.75),
-('2023002', 'Siti Nurhaliza binti Hassan', 'siti.nurhaliza@uitm.edu.my', '+60123456790', 'Information Technology', '2nd Year', 3.90),
-('2023003', 'Muhammad Rizki bin Omar', 'rizki.omar@uitm.edu.my', '+60123456791', 'Software Engineering', '4th Year', 3.65),
-('2023004', 'Fatimah binti Ali', 'fatimah.ali@uitm.edu.my', '+60123456792', 'Computer Science', '1st Year', 3.80),
-('2023005', 'Iskandar bin Rahman', 'iskandar.rahman@uitm.edu.my', '+60123456793', 'Information Systems', '3rd Year', 3.55);
-
-INSERT INTO courses (course_code, course_name, credits, instructor, enrolled_students, status) VALUES
-('IMS566', 'Advanced Web Design Development', 3, 'Dr. Sarah Ahmad', 32, 'Active'),
-('CSC101', 'Introduction to Computer Science', 3, 'Prof. Ahmad Hassan', 45, 'Active'),
-('MAT203', 'Discrete Mathematics', 4, 'Dr. Fatimah Ali', 28, 'Pending'),
-('PRG305', 'Mobile App Development', 3, 'Mr. Rahman Ismail', 22, 'Active'),
-('DB401', 'Database Management Systems', 4, 'Dr. Aminah Salleh', 35, 'Active');
-*/
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title : 'Student Management System'; ?></title>
+    <title>Student Management System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -102,13 +11,19 @@ INSERT INTO courses (course_code, course_name, credits, instructor, enrolled_stu
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
+            --dark-bg: #34495e;
             --light-bg: #ecf0f1;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--light-bg) 0%, #bdc3c7 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .navbar-brand {
@@ -116,28 +31,37 @@ INSERT INTO courses (course_code, course_name, credits, instructor, enrolled_stu
             color: white !important;
         }
 
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            transition: all 0.3s ease;
         }
 
-        .login-card {
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .main-container {
+            margin-top: 80px;
+            min-height: calc(100vh - 160px);
+        }
+
+        .login-container {
             background: white;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 2rem;
+            padding: 40px;
             max-width: 400px;
-            width: 100%;
+            margin: 0 auto;
+            margin-top: 100px;
         }
 
         .dashboard-card {
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            padding: 30px;
+            margin-bottom: 30px;
             transition: transform 0.3s ease;
         }
 
@@ -146,590 +70,704 @@ INSERT INTO courses (course_code, course_name, credits, instructor, enrolled_stu
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
             color: white;
             border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
         .profile-card {
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: transform 0.3s ease;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
 
         .profile-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
         .profile-avatar {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 2rem;
-            font-weight: bold;
+            margin-bottom: 15px;
         }
 
-        .sidebar {
-            background: var(--primary-color);
-            min-height: calc(100vh - 56px);
-            padding: 1rem 0;
-        }
-
-        .sidebar .nav-link {
-            color: #bdc3c7;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0;
+        .btn-primary {
+            background: var(--secondary-color);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
             transition: all 0.3s ease;
         }
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background: var(--secondary-color);
-            color: white;
-        }
-
-        .main-content {
-            padding: 2rem;
-            background: var(--light-bg);
-            min-height: calc(100vh - 56px);
+        .btn-primary:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
         }
 
         .footer {
             background: var(--primary-color);
             color: white;
             text-align: center;
-            padding: 1rem 0;
-            margin-top: auto;
+            padding: 20px 0;
+            margin-top: 50px;
         }
 
-        .btn-primary {
-            background: var(--secondary-color);
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
             border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
         }
 
-        .btn-primary:hover {
-            background: #2980b9;
-            border-color: #2980b9;
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        .table-container {
+        .login-header i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .sidebar {
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
+            padding: 20px;
+            margin-bottom: 30px;
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .alert {
+        .sidebar .nav-link {
+            color: var(--primary-color) !important;
+            padding: 10px 15px;
             border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: var(--secondary-color);
+            color: white !important;
+        }
+
+        .table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .table thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .badge {
+            border-radius: 20px;
+            padding: 5px 12px;
+        }
+
+        .quick-action {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .quick-action i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
-
-<?php
-// login.php
-if (!isset($_SESSION)) session_start();
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    
-    $query = "SELECT id, username, password FROM users WHERE username = :username";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    if ($stmt->rowCount() > 0) {
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (password_verify($password, $row['password']) || $password == 'password') {
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['username'] = $row['username'];
-            header('Location: dashboard.php');
-            exit;
-        } else {
-            $error = "Invalid username or password!";
-        }
-    } else {
-        $error = "Invalid username or password!";
-    }
-}
-
-if (!isLoggedIn()) {
-?>
-    <div class="login-container">
-        <div class="login-card fade-in">
-            <div class="text-center mb-4">
-                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                <h2 class="h3 mb-3">Student Management System</h2>
-                <p class="text-muted">Please sign in to your account</p>
-            </div>
-            
-            <?php if (isset($error)): ?>
-                <div class="alert alert-danger" role="alert">
-                    <?php echo $error; ?>
-                </div>
-            <?php endif; ?>
-            
-            <form method="POST">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" class="form-control" name="username" placeholder="Enter username" required>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" name="password" placeholder="Enter password" required>
-                    </div>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" name="remember_me">
-                    <label class="form-check-label" for="remember_me">Remember me</label>
-                </div>
-                <button type="submit" name="login" class="btn btn-primary w-100 mb-3">
-                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
-                </button>
-                <div class="text-center">
-                    <small class="text-muted">Demo credentials: admin / password</small>
-                </div>
-            </form>
-        </div>
-    </div>
-<?php
-} else {
-    // User is logged in, redirect to dashboard
-    header('Location: dashboard.php');
-    exit;
-}
-?>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-<?php
-// dashboard.php
-$page_title = "Dashboard - Student Management System";
-require_once 'session_handler.php';
-requireLogin();
-
-$database = new Database();
-$db = $database->getConnection();
-
-// Get statistics
-$stats = [];
-
-// Total students
-$query = "SELECT COUNT(*) as count FROM students";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$stats['total_students'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-
-// Active courses
-$query = "SELECT COUNT(*) as count FROM courses WHERE status = 'Active'";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$stats['active_courses'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-
-// Average GPA
-$query = "SELECT AVG(gpa) as avg_gpa FROM students";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$stats['avg_gpa'] = number_format($stmt->fetch(PDO::FETCH_ASSOC)['avg_gpa'], 2);
-
-// Total enrollments
-$query = "SELECT SUM(enrolled_students) as total FROM courses";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$stats['total_enrollments'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-?>
-
-<!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">
-            <i class="fas fa-graduation-cap me-2"></i>Student Management System
-        </a>
-        <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">Welcome, <?php echo $_SESSION['username']; ?></span>
-            <a class="nav-link" href="logout.php">
-                <i class="fas fa-sign-out-alt me-1"></i>Logout
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="showPage('dashboard')">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Student Management System
             </a>
-        </div>
-    </div>
-</nav>
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
-            <div class="position-sticky">
-                <ul class="nav flex-column">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="mainNav" style="display: none;">
                     <li class="nav-item">
-                        <a class="nav-link active" href="dashboard.php">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        <a class="nav-link" href="#" onclick="showPage('dashboard')">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="students.php">
-                            <i class="fas fa-users me-2"></i>Student Profiles
+                        <a class="nav-link" href="#" onclick="showPage('students')">
+                            <i class="fas fa-users me-1"></i>Students
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="courses.php">
-                            <i class="fas fa-book me-2"></i>Courses
+                        <a class="nav-link" href="#" onclick="showPage('courses')">
+                            <i class="fas fa-book me-1"></i>Courses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
                         </a>
                     </li>
                 </ul>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
+    <!-- Login Page -->
+    <div id="loginPage" class="page active">
+        <div class="container">
+            <div class="login-container">
+                <div class="login-header">
+                    <i class="fas fa-user-circle"></i>
+                    <h2>Welcome Back</h2>
+                    <p class="text-muted">Please sign in to your account</p>
+                </div>
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </button>
+                </form>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Demo: Use any username/password</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page">
+        <div class="container main-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="text-white mb-4">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">245</div>
+                        <div><i class="fas fa-users me-2"></i>Total Students</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">18</div>
+                        <div><i class="fas fa-book me-2"></i>Active Courses</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">12</div>
+                        <div><i class="fas fa-chalkboard-teacher me-2"></i>Instructors</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">92%</div>
+                        <div><i class="fas fa-chart-line me-2"></i>Success Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="dashboard-card">
+                        <h3 class="mb-4">Quick Actions</h3>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="quick-action" onclick="showPage('students')">
+                                    <i class="fas fa-user-plus"></i>
+                                    <h5>Add Student</h5>
+                                    <p class="text-muted">Register new student</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="quick-action" onclick="showPage('courses')">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <h5>New Course</h5>
+                                    <p class="text-muted">Create new course</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="quick-action">
+                                    <i class="fas fa-file-alt"></i>
+                                    <h5>Reports</h5>
+                                    <p class="text-muted">Generate reports</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="quick-action">
+                                    <i class="fas fa-cog"></i>
+                                    <h5>Settings</h5>
+                                    <p class="text-muted">System settings</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="dashboard-card">
+                        <h3 class="mb-4">Recent Activity</h3>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Activity</th>
+                                        <th>User</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>New student registered</td>
+                                        <td>John Doe</td>
+                                        <td>2 hours ago</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Course updated</td>
+                                        <td>Prof. Smith</td>
+                                        <td>4 hours ago</td>
+                                        <td><span class="badge bg-info">Updated</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Grade submitted</td>
+                                        <td>Dr. Johnson</td>
+                                        <td>6 hours ago</td>
+                                        <td><span class="badge bg-primary">Submitted</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <h3 class="mb-4">System Status</h3>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Server Performance</span>
+                                <span class="text-success">98%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 98%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Database Health</span>
+                                <span class="text-success">95%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Storage Usage</span>
+                                <span class="text-warning">78%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" style="width: 78%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Page -->
+    <div id="studentsPage" class="page">
+        <div class="container main-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="text-white mb-4">
+                        <i class="fas fa-users me-2"></i>Student Profiles
+                    </h1>
+                </div>
             </div>
 
             <div class="row">
-                <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h3><?php echo $stats['total_students']; ?></h3>
-                                <p class="mb-0">Total Students</p>
-                            </div>
-                            <i class="fas fa-users fa-2x"></i>
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <h4 class="text-center">Alice Johnson</h4>
+                        <p class="text-center text-muted">Computer Science</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.85</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>3rd</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('Alice Johnson')">View Profile</button>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background: linear-gradient(135deg, var(--accent-color), #c0392b);">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h3><?php echo $stats['active_courses']; ?></h3>
-                                <p class="mb-0">Active Courses</p>
-                            </div>
-                            <i class="fas fa-book fa-2x"></i>
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <h4 class="text-center">Bob Smith</h4>
+                        <p class="text-center text-muted">Business Administration</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.62</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>2nd</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('Bob Smith')">View Profile</button>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h3><?php echo $stats['avg_gpa']; ?></h3>
-                                <p class="mb-0">Average GPA</p>
-                            </div>
-                            <i class="fas fa-chart-line fa-2x"></i>
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <h4 class="text-center">Carol Davis</h4>
+                        <p class="text-center text-muted">Engineering</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.91</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>4th</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('Carol Davis')">View Profile</button>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h3><?php echo $stats['total_enrollments']; ?></h3>
-                                <p class="mb-0">Total Enrollments</p>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4 class="text-center">David Wilson</h4>
+                        <p class="text-center text-muted">Mathematics</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.78</p>
                             </div>
-                            <i class="fas fa-user-plus fa-2x"></i>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>3rd</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('David Wilson')">View Profile</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4 class="text-center">Emma Brown</h4>
+                        <p class="text-center text-muted">Psychology</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.94</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>1st</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('Emma Brown')">View Profile</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="profile-card">
+                        <div class="profile-avatar mx-auto">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4 class="text-center">Frank Miller</h4>
+                        <p class="text-center text-muted">Art & Design</p>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>GPA</strong>
+                                <p>3.67</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Year</strong>
+                                <p>2nd</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="showProfile('Frank Miller')">View Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Page -->
+    <div id="coursesPage" class="page">
+        <div class="container main-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="text-white mb-4">
+                        <i class="fas fa-book me-2"></i>Course Management
+                    </h1>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="dashboard-card">
+                        <h3 class="mb-4">Available Courses</h3>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Instructor</th>
+                                        <th>Students</th>
+                                        <th>Schedule</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>CS101</strong></td>
+                                        <td>Introduction to Programming</td>
+                                        <td>Dr. Smith</td>
+                                        <td>45</td>
+                                        <td>Mon, Wed 10:00 AM</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>BUS201</strong></td>
+                                        <td>Business Analytics</td>
+                                        <td>Prof. Johnson</td>
+                                        <td>32</td>
+                                        <td>Tue, Thu 2:00 PM</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ENG301</strong></td>
+                                        <td>Advanced Engineering</td>
+                                        <td>Dr. Davis</td>
+                                        <td>28</td>
+                                        <td>Mon, Fri 11:00 AM</td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>MATH150</strong></td>
+                                        <td>Calculus I</td>
+                                        <td>Prof. Wilson</td>
+                                        <td>55</td>
+                                        <td>Daily 9:00 AM</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>PSY101</strong></td>
+                                        <td>Introduction to Psychology</td>
+                                        <td>Dr. Brown</td>
+                                        <td>67</td>
+                                        <td>Wed, Fri 1:00 PM</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ART200</strong></td>
+                                        <td>Digital Design Fundamentals</td>
+                                        <td>Prof. Miller</td>
+                                        <td>22</td>
+                                        <td>Tue, Thu 3:00 PM</td>
+                                        <td><span class="badge bg-info">New</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">View</button>
+                                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="row mt-4">
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <div class="dashboard-card">
-                        <h5>Recent Activities</h5>
-                        <div class="list-group list-group-flush">
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">New student registration</h6>
-                                    <small>3 days ago</small>
-                                </div>
-                                <p class="mb-1">Ahmad bin Abdullah registered for Computer Science program</p>
+                        <h4 class="mb-3">Course Statistics</h4>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Courses</span>
+                                <span><strong>18</strong></span>
                             </div>
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Course completion</h6>
-                                    <small>1 week ago</small>
-                                </div>
-                                <p class="mb-1">Siti Nurhaliza completed Advanced Web Development course</p>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Active Courses</span>
+                                <span><strong>15</strong></span>
                             </div>
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">New course added</h6>
-                                    <small>2 weeks ago</small>
-                                </div>
-                                <p class="mb-1">Mobile App Development course has been added to curriculum</p>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Pending Approval</span>
+                                <span><strong>2</strong></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>New Courses</span>
+                                <span><strong>1</strong></span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="dashboard-card">
-                        <h5>Quick Actions</h5>
-                        <div class="d-grid gap-2">
-                            <a href="students.php" class="btn btn-primary">
-                                <i class="fas fa-user-plus me-2"></i>Manage Students
-                            </a>
-                            <a href="courses.php" class="btn btn-outline-primary">
-                                <i class="fas fa-book me-2"></i>View Courses
-                            </a>
-                            <button class="btn btn-outline-secondary">
-                                <i class="fas fa-chart-bar me-2"></i>Generate Report
-                            </button>
+                        <h4 class="mb-3">Popular Courses</h4>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Psychology 101</span>
+                                <span class="badge bg-primary">67 students</span>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Calculus I</span>
+                                <span class="badge bg-primary">55 students</span>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Intro to Programming</span>
+                                <span class="badge bg-primary">45 students</span>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Business Analytics</span>
+                                <span class="badge bg-primary">32 students</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-</div>
-
-<!-- Footer -->
-<footer class="footer mt-auto">
-    <div class="container-fluid">
-        <p class="mb-0">&copy; 2025 Student Management System. All rights reserved. Developed for UiTM Advanced Web Design Course.</p>
-    </div>
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
-<?php
-// students.php
-$page_title = "Student Profiles - Student Management System";
-require_once 'session_handler.php';
-requireLogin();
-
-$database = new Database();
-$db = $database->getConnection();
-
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['add_student'])) {
-        $query = "INSERT INTO students (student_id, name, email, phone, program, year, gpa) VALUES (:student_id, :name, :email, :phone, :program, :year, :gpa)";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':student_id', $_POST['student_id']);
-        $stmt->bindParam(':name', $_POST['name']);
-        $stmt->bindParam(':email', $_POST['email']);
-        $stmt->bindParam(':phone', $_POST['phone']);
-        $stmt->bindParam(':program', $_POST['program']);
-        $stmt->bindParam(':year', $_POST['year']);
-        $stmt->bindParam(':gpa', $_POST['gpa']);
-        
-        if ($stmt->execute()) {
-            $success = "Student added successfully!";
-        } else {
-            $error = "Error adding student!";
-        }
-    }
-}
-
-// Get all students
-$query = "SELECT * FROM students ORDER BY created_at DESC";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
-
-<!-- Include navigation here -->
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- Include sidebar here -->
-        
-        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Student Profiles</h1>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                    <i class="fas fa-plus me-2"></i>Add New Student
-                </button>
-            </div>
-
-            <?php if (isset($success)): ?>
-                <div class="alert alert-success" role="alert"><?php echo $success; ?></div>
-            <?php endif; ?>
-            
-            <?php if (isset($error)): ?>
-                <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
-            <?php endif; ?>
-
-            <div class="row">
-                <?php foreach ($students as $student): ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="profile-card">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="profile-avatar me-3">
-                                    <?php echo strtoupper(substr($student['name'], 0, 1)); ?>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0"><?php echo htmlspecialchars($student['name']); ?></h6>
-                                    <small class="text-muted"><?php echo htmlspecialchars($student['student_id']); ?></small>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <small class="text-muted">Program</small>
-                                    <p class="mb-1"><?php echo htmlspecialchars($student['program']); ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Year</small>
-                                    <p class="mb-1"><?php echo htmlspecialchars($student['year']); ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Email</small>
-                                    <p class="mb-1"><?php echo htmlspecialchars($student['email']); ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">GPA</small>
-                                    <p class="mb-1"><?php echo htmlspecialchars($student['gpa']); ?></p>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <button class="btn btn-sm btn-primary me-2">
-                                    <i class="fas fa-eye me-1"></i>View
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-edit me-1"></i>Edit
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </main>
-    </div>
-</div>
-
-<!-- Add Student Modal -->
-<div class="modal fade" id="addStudentModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Student</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="student_id" class="form-label">Student ID</label>
-                        <input type="text" class="form-control" name="student_id" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone</label>
-                        <input type="text" class="form-control" name="phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="program" class="form-label">Program</label>
-                        <select class="form-control" name="program" required>
-                            <option>Computer Science</option>
-                            <option>Information Technology</option>
-                            <option>Software Engineering</option>
-                            <option>Information Systems</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="year" class="form-label">Year</label>
-                        <select class="form-control" name="year" required>
-                            <option>1st Year</option>
-                            <option>2nd Year</option>
-                            <option>3rd Year</option>
-                            <option>4th Year</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="gpa" class="form-label">GPA</label>
-                        <input type="number" step="0.01" max="4.00" class="form-control" name="gpa">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="add_student" class="btn btn-primary">Add Student</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<?php
-// courses.php
-$page_title = "Course Management - Student Management System";
-require_once 'session_handler.php';
-requireLogin();
+    <!-- Profile Detail Page -->
+    <div id="profilePage" class="page">
+        <div class="container main-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="text-white mb-4">
+                        <i class="fas fa-user me-2"></i>Student Profile
+                    </h1>
+                </div>
+            </div>
 
-$database = new Database();
-$db = $database->getConnection();
-
-// Get all courses
-$query = "SELECT * FROM courses ORDER BY created_at DESC";
-$stmt = $db->prepare($query);
-$stmt->execute();
-$courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
-
-<!-- Include navigation and sidebar -->
-
-<main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Course Management</h1>
-        <button class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add New Course
-        </button>
-    </div>
-
-    <div class="table-container">
-        <table class="table table-hover mb-0">
-            <thead class="table-primary">
-                <tr>
-                    <th>Course Code</th>
-                    <th>Course Name</th>
-                    <th>Credits</th>
-                    <th>Instructor</th>
-                    <th>Enrolled Students</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($courses as $course): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($course['course_code']); ?></td>
-                        <td><?php echo htmlspecialchars($course['course_name']); ?></td>
-                        <td><?php echo htmlspecialchars($course['credits']); ?></td>
-                        <td><?php echo htmlspecialchars($course['instructor']); ?></td>
-                        <td><?php echo htmlspecialchars($course['enrolled_students']); ?></td>
-                        <td>
+            <div class="row">
+                <div class
